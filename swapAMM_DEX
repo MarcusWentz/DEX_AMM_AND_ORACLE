@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.7;
+
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol';
+
+contract ERC20TokenContract is ERC20('Chainlink', 'LINK') {}
+
+contract swapPoolWEI_LINK{
+    
+    uint public constantProduct;
+    uint public WEItoPayforLINKSwap;
+    uint public LINKtoPayforWEISwap;
+    address public ChainlinkTokenAddressRinkeby = 0x01BE23585060835E02B77ef475b0Cc51aA1e0709;
+    address payable public contractAdmin = payable(0xc1202e7d42655F23097476f6D48006fE56d38d4f);
+    
+    ERC20TokenContract tokenObject = ERC20TokenContract(ChainlinkTokenAddressRinkeby);
+    
+    //Used for checking if address can access funds 
+    modifier adminPermission() {
+        require(msg.sender == 0xc1202e7d42655F23097476f6D48006fE56d38d4f, "Only the Admin at address 0xc1202e7d42655F23097476f6D48006fE56d38d4f can access this function.");
+        _;
+    }
+
+    function Step1_createPool() public payable{
+        require(constantProduct == 0, "Pool already created.");
+        require(msg.value == 4, "Must have 4 WEI for pool creation!");
+        require(tokenObject.balanceOf(address(contractAdmin)) >= 4, "Must have 4*10^-18 LINK for pool creation!");
+        tokenObject.transferFrom(contractAdmin, address(this), 4); //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
+        constantProduct = address(this).balance*tokenObject.balanceOf(address(this));
+    }
+    
+    function Step2_computeswapWEIforLINK() public  {
+        require(address(this).balance == 4 && tokenObject.balanceOf(address(this)) == 4, "Pool must be in balanced state!");
+        WEItoPayforLINKSwap = ((constantProduct)/((tokenObject.balanceOf(address(this)) - 2))) - address(this).balance; // 4 WEI
+    }
+
+    function step3_swapWEIforLINK() public payable {
+         require(msg.value == WEItoPayforLINKSwap && WEItoPayforLINKSwap > 0, "Make sure you placed the WEI value and WEItoPayforLINKSwap is not 0."); // 4 WEI from user to contract
+         tokenObject.transfer(msg.sender, 2); // 2 LINK from contract to user
+         WEItoPayforLINKSwap = 0;
+    }
+     
+    function step4_computeswapLINKforWEI() public {
+        require(address(this).balance == 8 && tokenObject.balanceOf(address(this)) == 2, "Must have 8 WEI and 2 LINK in the contract to do this.");
+        LINKtoPayforWEISwap = ((constantProduct)/( address(this).balance- 4)) - tokenObject.balanceOf(address(this)); // 2 LINK
+    }
+    
+    //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
+    function step5_swapLINKforWEI() external {
+        require(tokenObject.balanceOf(address(this)) == 2 && address(this).balance == 8, "Must have 8 WEI and 2 LINK in the contract to do this.");
+        require(tokenObject.balanceOf(address(contractAdmin)) >= LINKtoPayforWEISwap && LINKtoPayforWEISwap > 0, "Make sure you have enough LINK and that LINKtoPayforWEISwap is not 0.");
+        tokenObject.transferFrom(contractAdmin, address(this), LINKtoPayforWEISwap); // 2 LINK from user to contract
+        payable(contractAdmin).transfer(4); // 4 Wei from contract to user
+        LINKtoPayforWEISwap = 0;
+    }    
+
+    function ZAdminWithdrawAllLINKAndWEI() public adminPermission  {
+         payable(contractAdmin).transfer(address(this).balance);
+         tokenObject.transfer(msg.sender, tokenObject.balanceOf(address(this)) );
+         constantProduct = 0;
+    }
+    
+}
+
