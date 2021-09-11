@@ -26,6 +26,7 @@ contract swapPoolWEI_LINK{
         require(constantProduct == 0, "Pool already created.");
         require(msg.value == 4, "Must have 4 WEI for pool creation!");
         require(tokenObject.balanceOf(address(LiquidityProviderAddress)) >= 4, "Must have 4*10^-18 LINK for pool creation!");
+        require(tokenObject.allowance(LiquidityProviderAddress,address(this)) >= 4, "Must allow 4 tokens from your wallet in the ERC20 contract!");
         tokenObject.transferFrom(LiquidityProviderAddress, address(this), 4); //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
         contractWEIBalance = address(this).balance;
         contractLINKBalance = tokenObject.balanceOf(address(this));
@@ -44,6 +45,7 @@ contract swapPoolWEI_LINK{
     function step3_swapLINKforWEI() public {
         require(contractLINKBalance == 2 && contractWEIBalance == 8, "Must have 8 WEI and 2 LINK in the contract to do this.");
         require(tokenObject.balanceOf(address(msg.sender)) >= ((constantProduct)/(contractWEIBalance- 4)) - contractLINKBalance  , "You need at least 2 LINK in your account to do this.");
+        require(tokenObject.allowance(msg.sender,address(this)) >= ((constantProduct)/(contractWEIBalance- 4)) - contractLINKBalance  , "Must allow 2 tokens from your wallet in the ERC20 contract!");
         tokenObject.transferFrom(msg.sender, address(this), ((constantProduct)/(contractWEIBalance- 4)) - contractLINKBalance  ); // 2 LINK from user to contract
         payable(msg.sender).transfer(4); // 4 Wei from contract to user
         contractWEIBalance = address(this).balance;
