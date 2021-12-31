@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.11;
 
 import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol';
 
@@ -10,8 +10,8 @@ contract swapPoolMATICLINK{
     uint public constantProduct;
     uint public contractMATICBalance;
     uint public contractLINKBalance;
-    address public ChainlinkTokenAddressRinkeby = 0x326C977E6efc84E512bB9C30f76E30c160eD06FB;
-    ERC20TokenContract tokenObject = ERC20TokenContract(ChainlinkTokenAddressRinkeby);
+    address public ChainlinkTokenAddressMatic = 0x326C977E6efc84E512bB9C30f76E30c160eD06FB;
+    ERC20TokenContract tokenObject = ERC20TokenContract(ChainlinkTokenAddressMatic);
     address public immutable Owner;
 
     constructor() {
