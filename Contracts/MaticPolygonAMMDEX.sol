@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.11;
 
-import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol';
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract ERC20TokenContract is ERC20('Chainlink', 'LINK') {}
 
@@ -49,17 +49,17 @@ contract swapPoolMATICLINK{
         require(tokenObject.balanceOf(address(msg.sender)) >= ((constantProduct)/(contractMATICBalance- 4)) - contractLINKBalance  , "You need at least 2 LINK in your account to do this.");
         require(tokenObject.allowance(msg.sender,address(this)) >= ((constantProduct)/(contractMATICBalance- 4)) - contractLINKBalance  , "Must allow 2 tokens from your wallet in the ERC20 contract!");
         tokenObject.transferFrom(msg.sender, address(this), ((constantProduct)/(contractMATICBalance- 4)) - contractLINKBalance  ); // 2 LINK from user to contract
-        payable(msg.sender).transfer(4); // 4 MATIC from contract to user
         contractMATICBalance = address(this).balance;
         contractLINKBalance = tokenObject.balanceOf(address(this));
+        payable(msg.sender).transfer(4); // 4 MATIC from contract to user
     }    
 
     function WithdrawAllLINKAndMATIC() public LiquidityProviderAddressCheck  {
-         payable(Owner).transfer(contractMATICBalance);
          tokenObject.transfer(Owner, contractLINKBalance);
          constantProduct = 0;
          contractMATICBalance = 0;
          contractLINKBalance = 0;
+         payable(Owner).transfer(address(this).balance);
     }
 
 }
