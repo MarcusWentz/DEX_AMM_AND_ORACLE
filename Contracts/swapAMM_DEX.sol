@@ -1,11 +1,22 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.11;
 
-import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol';
+contract ReentrancyGuard {
+    bool internal locked;
+
+    modifier noReentrant() {
+        require(!locked, "No re-entrancy");
+        locked = true;
+        _;
+        locked = false;
+    }
+}
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract ERC20TokenContract is ERC20('Chainlink', 'LINK') {}
 
-contract swapPoolWEI_LINK{
+contract swapPoolWEI_LINK is ReentrancyGuard {
 
     uint public constantProduct;
     uint public contractWEIBalance;
@@ -42,7 +53,7 @@ contract swapPoolWEI_LINK{
     }
 
     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
-    function step3_swapLINKforWEI() public {
+    function step3_swapLINKforWEI() public noReentrant{
         require(contractLINKBalance == 2 && contractWEIBalance == 8, "Must have 8 WEI and 2 LINK in the contract to do this.");
         require(tokenObject.balanceOf(address(msg.sender)) >= ((constantProduct)/(contractWEIBalance- 4)) - contractLINKBalance  , "You need at least 2 LINK in your account to do this.");
         require(tokenObject.allowance(msg.sender,address(this)) >= ((constantProduct)/(contractWEIBalance- 4)) - contractLINKBalance  , "Must allow 2 tokens from your wallet in the ERC20 contract!");
