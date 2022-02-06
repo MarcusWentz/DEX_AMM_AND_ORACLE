@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.11;
 
-import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol';
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract ERC20TokenContract is ERC20('Chainlink', 'LINK') {}
 
@@ -47,17 +47,17 @@ contract swapPoolWEI_LINK{
         require(tokenObject.balanceOf(address(msg.sender)) >= ((constantProduct)/(contractWEIBalance- 4)) - contractLINKBalance  , "You need at least 2 LINK in your account to do this.");
         require(tokenObject.allowance(msg.sender,address(this)) >= ((constantProduct)/(contractWEIBalance- 4)) - contractLINKBalance  , "Must allow 2 tokens from your wallet in the ERC20 contract!");
         tokenObject.transferFrom(msg.sender, address(this), ((constantProduct)/(contractWEIBalance- 4)) - contractLINKBalance  ); // 2 LINK from user to contract
-        payable(msg.sender).transfer(4); // 4 Wei from contract to user
         contractWEIBalance = address(this).balance;
         contractLINKBalance = tokenObject.balanceOf(address(this));
+        payable(msg.sender).transfer(4); // 4 Wei from contract to user
     }    
 
     function WithdrawAllLINKAndWEI() public LiquidityProviderAddressCheck  {
-         payable(LiquidityProviderAddress).transfer(contractWEIBalance);
          tokenObject.transfer(LiquidityProviderAddress, contractLINKBalance);
          constantProduct = 0;
          contractWEIBalance = 0;
          contractLINKBalance = 0;
+         payable(LiquidityProviderAddress).transfer(address(this).balance);
     }
 
 }
