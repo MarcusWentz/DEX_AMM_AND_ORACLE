@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.11;
+pragma solidity 0.8.13;
 
 contract ReentrancyGuard {
     bool internal locked;
@@ -38,8 +38,6 @@ contract swapPoolMATICLINK is ReentrancyGuard {
     function Step1_createPool() public payable LiquidityProviderAddressCheck {
         require(constantProduct == 0, "Pool already created.");
         require(msg.value == 4, "Must have 4 MATIC for pool creation!");
-        require(tokenObject.balanceOf(address(Owner)) >= 4, "Must have 4*10^-18 LINK for pool creation!");
-        require(tokenObject.allowance(Owner,address(this)) >= 4, "Must allow 4 tokens from your wallet in the ERC20 contract!");
         tokenObject.transferFrom(Owner, address(this), 4); //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
         contractMATICBalance = address(this).balance;
         contractLINKBalance = tokenObject.balanceOf(address(this));
@@ -57,8 +55,6 @@ contract swapPoolMATICLINK is ReentrancyGuard {
     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
     function step3_swapLINKforMATIC() public noReentrant {
         require(contractLINKBalance == 2 && contractMATICBalance == 8, "Must have 8 MATIC and 2 LINK in the contract to do this.");
-        require(tokenObject.balanceOf(address(msg.sender)) >= ((constantProduct)/(contractMATICBalance- 4)) - contractLINKBalance  , "You need at least 2 LINK in your account to do this.");
-        require(tokenObject.allowance(msg.sender,address(this)) >= ((constantProduct)/(contractMATICBalance- 4)) - contractLINKBalance  , "Must allow 2 tokens from your wallet in the ERC20 contract!");
         tokenObject.transferFrom(msg.sender, address(this), ((constantProduct)/(contractMATICBalance- 4)) - contractLINKBalance  ); // 2 LINK from user to contract
         payable(msg.sender).transfer(4); // 4 MATIC from contract to user
         contractMATICBalance = address(this).balance;
