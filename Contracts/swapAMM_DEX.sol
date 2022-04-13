@@ -23,12 +23,16 @@ contract swapPoolWEI_LINK is ReentrancyGuard {
     uint public contractLINKBalance;
     address public ChainlinkTokenAddressRinkeby = 0x01BE23585060835E02B77ef475b0Cc51aA1e0709;
     address payable public LiquidityProviderAddress = payable(0xc1202e7d42655F23097476f6D48006fE56d38d4f);
+    address public immutable Owner;
 
     ERC20TokenContract tokenObject = ERC20TokenContract(ChainlinkTokenAddressRinkeby);
 
-    //Debug admin functions use this to check you are the admin. 
+    constructor() {
+        Owner = msg.sender;
+    }
+
     modifier LiquidityProviderAddressCheck() {
-        require(msg.sender == 0xc1202e7d42655F23097476f6D48006fE56d38d4f, "Only the Admin at address 0xc1202e7d42655F23097476f6D48006fE56d38d4f can access this function.");
+        require(Owner == msg.sender, "Only the Owner can access this function.");
         _;
     }
 
