@@ -32,8 +32,6 @@ contract swapPoolDAI_ETH_Order_Book_Oracle{
     
     //NEED TO APPROVE ERC20 DAI CONTRACT BEFORE YOU CAN SEND DAI!
     function Step1A_Add_DAI_To_Pool() public LiquidityProviderAddressCheck {
-        require(tokenDAI.balanceOf(address(msg.sender)) >= 3700*(10**18), "YOU NEED AT LEAST 3700*(10**18) DAI.");
-        require(tokenDAI.allowance(msg.sender,address(this)) == 3700*(10**18), "APRROVE AT LEAST 3700*(10**18) DAI.");
         tokenDAI.transferFrom(msg.sender, address(this), 3700*(10**18)); 
     }
     
@@ -50,8 +48,6 @@ contract swapPoolDAI_ETH_Order_Book_Oracle{
     //NEED TO APPROVE ERC20 DAI CONTRACT BEFORE YOU CAN SEND DAI!
     function Step2B_BuyOneETHwithDAI() public { //0.2% buy fee
         require(address(this).balance >=  1*(10**18) , "NEED 1 ETH AT LEAST IN THE POOL");
-        require(tokenDAI.balanceOf(address(msg.sender)) >=  (getLatestETHPrice()*1002)/1000  , "YOU NEED AT LEAST uint((getLatestETHPrice()*1002)/1000) DAI.");
-        require(tokenDAI.allowance(msg.sender,address(this)) >=  (getLatestETHPrice()*1002)/1000 , "APRROVE AT LEAST uint((getLatestETHPrice()*1002)/1000) DAI");
         tokenDAI.transferFrom(msg.sender, address(this),  (getLatestETHPrice()*1002)/1000 ); 
         payable(msg.sender).transfer(1*(10**18)); 
     }   
@@ -62,4 +58,3 @@ contract swapPoolDAI_ETH_Order_Book_Oracle{
          tokenDAI.transfer(msg.sender, tokenDAI.balanceOf(address(this)) );
     }
 }
-
