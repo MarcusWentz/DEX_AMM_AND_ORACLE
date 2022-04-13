@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.11;
+pragma solidity 0.8.13;
 
 contract ReentrancyGuard {
     bool internal locked;
@@ -36,9 +36,7 @@ contract swapPoolWEI_LINK is ReentrancyGuard {
     function Step1_createPool() public payable LiquidityProviderAddressCheck {
         require(constantProduct == 0, "Pool already created.");
         require(msg.value == 4, "Must have 4 WEI for pool creation!");
-        require(tokenObject.balanceOf(address(LiquidityProviderAddress)) >= 4, "Must have 4*10^-18 LINK for pool creation!");
-        require(tokenObject.allowance(LiquidityProviderAddress,address(this)) >= 4, "Must allow 4 tokens from your wallet in the ERC20 contract!");
-        tokenObject.transferFrom(LiquidityProviderAddress, address(this), 4); //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
+        tokenObject.transferFrom(LiquidityProviderAddress, address(this), 4); //MUST_ALLOW_AND_HAVE_4_LINK_WEI.
         contractWEIBalance = address(this).balance;
         contractLINKBalance = tokenObject.balanceOf(address(this));
         constantProduct = contractWEIBalance*contractLINKBalance;
@@ -55,9 +53,7 @@ contract swapPoolWEI_LINK is ReentrancyGuard {
     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
     function step3_swapLINKforWEI() public noReentrant {
         require(contractLINKBalance == 2 && contractWEIBalance == 8, "Must have 8 WEI and 2 LINK in the contract to do this.");
-        require(tokenObject.balanceOf(address(msg.sender)) >= ((constantProduct)/(contractWEIBalance- 4)) - contractLINKBalance  , "You need at least 2 LINK in your account to do this.");
-        require(tokenObject.allowance(msg.sender,address(this)) >= ((constantProduct)/(contractWEIBalance- 4)) - contractLINKBalance  , "Must allow 2 tokens from your wallet in the ERC20 contract!");
-        tokenObject.transferFrom(msg.sender, address(this), ((constantProduct)/(contractWEIBalance- 4)) - contractLINKBalance  ); // 2 LINK from user to contract
+        tokenObject.transferFrom(msg.sender, address(this), ((constantProduct)/(contractWEIBalance- 4)) - contractLINKBalance  ) ; //MUST_ALLOW_AND_HAVE_2_LINK_WEI.
         payable(msg.sender).transfer(4); // 4 Wei from contract to user
         contractWEIBalance = address(this).balance;
         contractLINKBalance = tokenObject.balanceOf(address(this));
