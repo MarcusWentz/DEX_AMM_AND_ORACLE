@@ -22,8 +22,9 @@ contract swapPoolMATICLINK is ReentrancyGuard {
     uint public contractMATICBalance;
     uint public contractLINKBalance;
     address public ChainlinkTokenAddressMatic = 0x326C977E6efc84E512bB9C30f76E30c160eD06FB;
-    ERC20TokenContract tokenObject = ERC20TokenContract(ChainlinkTokenAddressMatic);
     address public immutable Owner;
+    
+    ERC20TokenContract tokenObject = ERC20TokenContract(ChainlinkTokenAddressMatic);
 
     constructor() {
         Owner = msg.sender;
