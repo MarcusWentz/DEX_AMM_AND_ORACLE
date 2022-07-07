@@ -5,26 +5,28 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract ERC20TokenContract is ERC20('Token', 'TKN') {}
 
-contract Token is ERC20{ 
+contract Token is ERC20{
 
-    address immutable Owner; 
+    address immutable Owner;
 
-    constructor() ERC20("Token","TKN") { 
-        Owner = msg.sender;                                  
+    constructor() ERC20("Token","TKN") {
+        Owner = msg.sender;
         _mint(Owner,(1)*(10**18) );
     }
-    
+
 }
 
-contract swapPoolMATICLINK {
-    
-    uint public immutable constantProduct = 16; //Immutable does not use storage slot to save gas for uint at address variables here.
-    address public immutable Owner;             
-    
-    ERC20TokenContract tokenObject = ERC20TokenContract(0xd9145CCE52D386f254917e481eB44e9943F39138); //ERC20 token address goes here.
+contract swapMsgValueAndToken {
 
-    constructor() {
+    uint public immutable constantProduct = 16; //Immutable does not use storage slot to save gas for uint at address variables here.
+    address public immutable Owner;
+
+    ERC20TokenContract tokenObject;
+
+
+    constructor(address _token) {
         Owner = msg.sender;
+        tokenObject = ERC20TokenContract(_token); //ERC20 token address goes here.
     }
 
     modifier senderIsOwner () {
@@ -48,32 +50,32 @@ contract swapPoolMATICLINK {
     }
 
     modifier balancedSwapMaticforLink() {
-        require(poolMaticBalance()*(poolLinkBalance()-linkToReceiveMaticReceived()) == constantProduct, "Swap MMM."); //msg.value updates balance before payable modifier
+        require(poolMaticBalance()*(poolLinkBalance()-linkToReceiveMaticReceived()) == constantProduct, "Matic deposit will not balance pool!"); //msg.value updates balance before payable modifier
         _;
     }
 
     modifier balancedSwapLinkforMatic(uint payLink) {
-        require((poolLinkBalance()+payLink)*(poolMaticBalance()-maticToReceive(payLink)) == constantProduct, "Swap lll.");
+        require((poolLinkBalance()+payLink)*(poolMaticBalance()-maticToReceive(payLink)) == constantProduct, "Link deposit will not balance pool!.");
         _;
     }
 
     function createMaticLinkPool(uint linkDeposit) public payable senderIsOwner poolEmpty validDeposit(linkDeposit) {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
-        tokenObject.transferFrom(Owner, address(this), linkDeposit); //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
+        tokenObject.transferFrom(Owner, address(this), linkDeposit);
     }
-    
+
     function ownerWithdrawPool() public senderIsOwner poolExists  {
         tokenObject.transfer(Owner, poolLinkBalance());
         payable(Owner).transfer(address(this).balance);
     }
 
     function swapMATICforLINK() public payable poolExists balancedSwapMaticforLink {
-        tokenObject.transfer(msg.sender, linkToReceiveMaticReceived() ); 
+        tokenObject.transfer(msg.sender, linkToReceiveMaticReceived() );
     }
-    
+
     function swapLINKforMATIC(uint payLink) public poolExists balancedSwapLinkforMatic(payLink) {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
-        tokenObject.transferFrom(msg.sender, address(this),  payLink ); 
-        payable(msg.sender).transfer(maticToReceiveLinkReceived()); 
-    }    
+        tokenObject.transferFrom(msg.sender, address(this),  payLink );
+        payable(msg.sender).transfer(maticToReceiveLinkReceived());
+    }
 
     function poolMaticBalance() public view returns(uint)  {
         return address(this).balance;
@@ -88,11 +90,11 @@ contract swapPoolMATICLINK {
     }
 
     function maticToReceiveLinkReceived() public view returns(uint)  {
-        return poolMaticBalance()-(constantProduct/((poolLinkBalance())) ) ;  
+        return poolMaticBalance()-(constantProduct/((poolLinkBalance())) ) ;
     }
 
     function linkToReceive(uint payMatic) public view returns(uint)  {
-        return poolLinkBalance()-(constantProduct)/(poolMaticBalance()+payMatic); 
+        return poolLinkBalance()-(constantProduct)/(poolMaticBalance()+payMatic);
     }
 
     function linkToReceiveMaticReceived() public view returns(uint)  {
