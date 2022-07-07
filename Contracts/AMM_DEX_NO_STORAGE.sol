@@ -11,7 +11,7 @@ contract Token is ERC20{
 
     constructor() ERC20("Token","TKN") { 
         Owner = msg.sender;                                  
-        _mint(Owner,                        (1)*(10**18) );
+        _mint(Owner,(1)*(10**18) );
     }
     
 }
@@ -37,6 +37,16 @@ contract swapPoolMATICLINK {
         _;
     }
 
+    modifier poolEmpty() {
+        require(poolMaticBalance()*poolLinkBalance() == 0 , "Pool exists.");
+        _;
+    }
+
+    modifier validDeposit(uint linkDeposit) {
+        require(msg.value*linkDeposit == constantProduct, "Matic*Link must match constant product!");
+        _;
+    }
+
     modifier balancedSwapMaticforLink() {
         require(poolMaticBalance()*(poolLinkBalance()-linkToReceiveMaticReceived()) == constantProduct, "Swap MMM."); //msg.value updates balance before payable modifier
         _;
@@ -47,9 +57,7 @@ contract swapPoolMATICLINK {
         _;
     }
 
-    function createMaticLinkPool(uint linkDeposit) public payable senderIsOwner {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
-        require(poolMaticBalance()*poolLinkBalance() == 0, "Pool already created.");
-        require(msg.value*linkDeposit == constantProduct, "Matic*Link must match constant product!");
+    function createMaticLinkPool(uint linkDeposit) public payable senderIsOwner poolEmpty validDeposit(linkDeposit) {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
         tokenObject.transferFrom(Owner, address(this), linkDeposit); //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
     }
     
