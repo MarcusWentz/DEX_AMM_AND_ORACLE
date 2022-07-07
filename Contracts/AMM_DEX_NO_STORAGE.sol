@@ -32,7 +32,7 @@ contract swapPoolMATICLINK {
         _;
     }
 
-    modifier poolBalance() {
+    modifier poolExists() {
         require(poolMaticBalance()*poolLinkBalance() > 0 , "Pool does not exist yet.");
         _;
     }
@@ -43,17 +43,17 @@ contract swapPoolMATICLINK {
         tokenObject.transferFrom(Owner, address(this), linkDeposit); //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
     }
     
-    function ownerWithdrawPool() public senderIsOwner poolBalance  {
+    function ownerWithdrawPool() public senderIsOwner poolExists  {
         tokenObject.transfer(Owner, poolLinkBalance());
         payable(Owner).transfer(address(this).balance);
     }
 
-    function swapMATICforLINK() public payable poolBalance {
+    function swapMATICforLINK() public payable poolExists {
         require(balancedSwapMaticforLink(), "Matic*Link must match constant product!");
         tokenObject.transfer(msg.sender, linkToReceiveMaticReceived() ); 
     }
     
-    function swapLINKforMATIC(uint payLink) public poolBalance {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
+    function swapLINKforMATIC(uint payLink) public poolExists {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
         require(balancedSwapLinkforMatic(payLink), "Matic*Link must match constant product!");
         tokenObject.transferFrom(msg.sender, address(this),  payLink ); 
         payable(msg.sender).transfer(maticToReceiveLinkReceived()); 
