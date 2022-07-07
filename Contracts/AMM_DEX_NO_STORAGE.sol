@@ -18,7 +18,7 @@ contract Token is ERC20{
 
 contract swapPoolMATICLINK {
     
-    uint public constantProduct;
+    uint public immutable constantProduct = 16;
     address public immutable Owner;
     
     ERC20TokenContract tokenObject = ERC20TokenContract(0xd9145CCE52D386f254917e481eB44e9943F39138); //ERC20 token address goes here.
@@ -32,29 +32,29 @@ contract swapPoolMATICLINK {
         _;
     }
 
-    modifier poolExists() {
-        require(constantProduct > 0 , "Pool does not exist yet.");
+    modifier poolBalance() {
+        require(poolMaticBalance()*poolLinkBalance() > 0 , "Pool does not exist yet.");
         _;
     }
 
     function createMaticLinkPool(uint linkDeposit) public payable senderIsOwner {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
-        require(constantProduct == 0, "Pool already created.");
-        require(msg.value*linkDeposit > 0, "Matic*Link deposit should be greater than 0!");
+        require(poolMaticBalance()*poolLinkBalance() == 0, "Pool already created.");
+        require(msg.value*linkDeposit == constantProduct, "Matic*Link must match constant product!");
         tokenObject.transferFrom(Owner, address(this), linkDeposit); //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
-        constantProduct = poolMaticBalance()*poolLinkBalance();
     }
     
-    function ownerWithdrawPool() public senderIsOwner poolExists  {
+    function ownerWithdrawPool() public senderIsOwner poolBalance  {
         tokenObject.transfer(Owner, poolLinkBalance());
-        constantProduct = 0;
         payable(Owner).transfer(address(this).balance);
     }
 
-    function swapMATICforLINK() public payable poolExists {
+    function swapMATICforLINK() public payable poolBalance {
+        require(balancedSwapMaticforLink(), "Matic*Link must match constant product!");
         tokenObject.transfer(msg.sender, linkToReceiveMaticReceived() ); 
     }
     
-    function swapLINKforMATIC(uint payLink) public poolExists {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
+    function swapLINKforMATIC(uint payLink) public poolBalance {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
+        require(balancedSwapLinkforMatic(payLink), "Matic*Link must match constant product!");
         tokenObject.transferFrom(msg.sender, address(this),  payLink ); 
         payable(msg.sender).transfer(maticToReceiveLinkReceived()); 
     }    
@@ -68,19 +68,27 @@ contract swapPoolMATICLINK {
     }
 
     function maticToReceive(uint payLink) public view returns(uint)  {
-        return (poolMaticBalance()-(constantProduct)/(poolLinkBalance()+payLink));
+        return poolMaticBalance()-(constantProduct)/(poolLinkBalance()+payLink);
     }
 
     function maticToReceiveLinkReceived() public view returns(uint)  {
-        return poolMaticBalance()-(constantProduct/((poolLinkBalance())) ) ; //msg.value updates balance already. 
+        return poolMaticBalance()-(constantProduct/((poolLinkBalance())) ) ;  
     }
 
     function linkToReceive(uint payMatic) public view returns(uint)  {
-        return poolLinkBalance()-(constantProduct)/(poolMaticBalance()+payMatic); //msg.value updates balance already. 
+        return poolLinkBalance()-(constantProduct)/(poolMaticBalance()+payMatic); 
     }
 
     function linkToReceiveMaticReceived() public view returns(uint)  {
-        return poolLinkBalance()-(constantProduct/((poolMaticBalance())) ) ; //msg.value updates balance already. 
+        return poolLinkBalance()-(constantProduct/((poolMaticBalance())) ) ;
+    }
+
+    function balancedSwapMaticforLink() public view returns(bool)  {
+        return poolMaticBalance()*(poolLinkBalance()-linkToReceiveMaticReceived()) == constantProduct; //msg.value updates balance before payable modifier. 
+    }
+
+    function balancedSwapLinkforMatic(uint payLink) public view returns(bool)  {
+        return (poolLinkBalance()+payLink)*(poolMaticBalance()-maticToReceive(payLink)) == constantProduct; 
     }
 
 }
