@@ -18,8 +18,8 @@ contract Token is ERC20{
 
 contract swapPoolMATICLINK {
     
-    uint public immutable constantProduct = 16;
-    address public immutable Owner;
+    uint public immutable constantProduct = 16; //Immutable does not use storage slot to save gas.
+    address public immutable Owner;             //Immutable does not use storage slot to save gas.
     
     ERC20TokenContract tokenObject = ERC20TokenContract(0xd9145CCE52D386f254917e481eB44e9943F39138); //ERC20 token address goes here.
 
