@@ -23,7 +23,6 @@ contract swapMsgValueAndToken {
 
     ERC20TokenContract tokenObject;
 
-
     constructor(address _token) {
         Owner = msg.sender;
         tokenObject = ERC20TokenContract(_token); //ERC20 token address goes here.
