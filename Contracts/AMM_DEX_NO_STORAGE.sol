@@ -37,6 +37,16 @@ contract swapPoolMATICLINK {
         _;
     }
 
+    modifier balancedSwapMaticforLink() {
+        require(poolMaticBalance()*(poolLinkBalance()-linkToReceiveMaticReceived()) == constantProduct, "Swap MMM."); //msg.value updates balance before payable modifier
+        _;
+    }
+
+    modifier balancedSwapLinkforMatic(uint payLink) {
+        require((poolLinkBalance()+payLink)*(poolMaticBalance()-maticToReceive(payLink)) == constantProduct, "Swap lll.");
+        _;
+    }
+
     function createMaticLinkPool(uint linkDeposit) public payable senderIsOwner {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
         require(poolMaticBalance()*poolLinkBalance() == 0, "Pool already created.");
         require(msg.value*linkDeposit == constantProduct, "Matic*Link must match constant product!");
@@ -48,13 +58,11 @@ contract swapPoolMATICLINK {
         payable(Owner).transfer(address(this).balance);
     }
 
-    function swapMATICforLINK() public payable poolExists {
-        require(balancedSwapMaticforLink(), "Matic*Link must match constant product!");
+    function swapMATICforLINK() public payable poolExists balancedSwapMaticforLink {
         tokenObject.transfer(msg.sender, linkToReceiveMaticReceived() ); 
     }
     
-    function swapLINKforMATIC(uint payLink) public poolExists {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
-        require(balancedSwapLinkforMatic(payLink), "Matic*Link must match constant product!");
+    function swapLINKforMATIC(uint payLink) public poolExists balancedSwapLinkforMatic(payLink) {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
         tokenObject.transferFrom(msg.sender, address(this),  payLink ); 
         payable(msg.sender).transfer(maticToReceiveLinkReceived()); 
     }    
@@ -81,14 +89,6 @@ contract swapPoolMATICLINK {
 
     function linkToReceiveMaticReceived() public view returns(uint)  {
         return poolLinkBalance()-(constantProduct/((poolMaticBalance())) ) ;
-    }
-
-    function balancedSwapMaticforLink() public view returns(bool)  {
-        return poolMaticBalance()*(poolLinkBalance()-linkToReceiveMaticReceived()) == constantProduct; //msg.value updates balance before payable modifier. 
-    }
-
-    function balancedSwapLinkforMatic(uint payLink) public view returns(bool)  {
-        return (poolLinkBalance()+payLink)*(poolMaticBalance()-maticToReceive(payLink)) == constantProduct; 
     }
 
 }
