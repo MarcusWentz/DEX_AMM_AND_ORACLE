@@ -23,6 +23,7 @@ contract swapMsgValueAndToken {
 
     ERC20TokenContract tokenObject;
 
+
     constructor(address _token) {
         Owner = msg.sender;
         tokenObject = ERC20TokenContract(_token); //ERC20 token address goes here.
@@ -39,7 +40,7 @@ contract swapMsgValueAndToken {
     }
 
     modifier poolEmpty() {
-        require(poolMaticBalance()*poolLinkBalance() == 0 , "Pool exists.");
+        require(poolMaticBalance()*poolLinkBalance() == 0 , "Pool exists already.");
         _;
     }
 
