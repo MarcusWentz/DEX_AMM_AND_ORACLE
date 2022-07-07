@@ -50,7 +50,7 @@ describe("Tests:", function () {
              await ContractDeployed.createMaticLinkPool(4 , {value: 4});
              await expect(
                ContractDeployed.createMaticLinkPool(4 , {value: 4})
-             ).to.be.revertedWith("Pool exists.");           });
+             ).to.be.revertedWith("Pool exists already.");           });
            it("constant product not matched", async function () {
              await ERC20Deployed.approve(ContractDeployed.address,4)
              await expect(
