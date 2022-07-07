@@ -3,28 +3,25 @@ pragma solidity 0.8.15;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract ERC20TokenContract is ERC20('Chainlink', 'LINK') {}
+contract ERC20TokenContract is ERC20('Token', 'TKN') {}
 
+contract Token is ERC20{ 
 
-contract TruckStopToken is ERC20{ //100 Quattuorvigintillion (10**77) is largest possible supply but not practical for trading [too hard to chart].
+    address immutable Owner; 
 
-    address immutable Owner; // Will add TST to Uniswap pool for trading. Largest supply token at this moment is ELON about 1 Quadrillion (10**15)
-
-    constructor() ERC20("TruckStopToken","TST") { //Fair ICOs like ETH have 80% public sale [We have 82%]. 1 Sextillion tokens (10**21).
-        Owner = msg.sender;                                  //Contract deployer is the owner. 
-        _mint(Owner,                        (88)*(10**37) ); //Owner will keep 6 but put 82 on Uniswap.
+    constructor() ERC20("Token","TKN") { 
+        Owner = msg.sender;                                  
+        _mint(Owner,                        (1)*(10**18) );
     }
     
 }
 
 contract swapPoolMATICLINK {
     
+    uint public constantProduct;
     address public immutable Owner;
     
-    //ERC20TokenContract tokenObject = ERC20TokenContract(0x326C977E6efc84E512bB9C30f76E30c160eD06FB); //Chainlink contract address on Polygon testnet.
-    ERC20TokenContract tokenObject = ERC20TokenContract(0xd9145CCE52D386f254917e481eB44e9943F39138); //Chainlink contract address on Polygon testnet.
-    uint public constantProduct;
-
+    ERC20TokenContract tokenObject = ERC20TokenContract(0xd9145CCE52D386f254917e481eB44e9943F39138); //ERC20 token address goes here.
 
     constructor() {
         Owner = msg.sender;
