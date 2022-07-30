@@ -3,8 +3,6 @@ pragma solidity 0.8.15;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract ERC20TokenContract is ERC20('Token', 'TKN') {}
-
 contract Token is ERC20{
 
     address immutable Owner;
@@ -15,6 +13,8 @@ contract Token is ERC20{
     }
 
 }
+
+contract ERC20TokenContract is ERC20('Token', 'TKN') {}
 
 contract swapMsgValueAndToken {
 
