@@ -9,7 +9,7 @@ contract Token is ERC20{
 
     constructor() ERC20("Token","TKN") {
         Owner = msg.sender;
-        _mint(Owner,(1)*(10**18) );
+        _mint(Owner,(1000)*(1 ether) );
     }
 
 }
@@ -35,70 +35,70 @@ contract swapMsgValueAndToken {
     }
 
     modifier poolExists() {
-        require(poolSHMBalance()*poolLinkBalance() > 0 , "Pool does not exist yet.");
+        require(poolSHMBalance()*poolTokenBalance() > 0 , "Pool does not exist yet.");
         _;
     }
 
     modifier poolEmpty() {
-        require(poolSHMBalance()*poolLinkBalance() == 0 , "Pool exists already.");
+        require(poolSHMBalance()*poolTokenBalance() == 0 , "Pool exists already.");
         _;
     }
 
-    modifier validDeposit(uint linkDeposit) {
-        require(msg.value*linkDeposit == constantProduct, "SHM*Link must match constant product!");
+    modifier validDeposit(uint TokenDeposit) {
+        require(msg.value*TokenDeposit == constantProduct, "SHM*Token must match constant product!");
         _;
     }
 
-    modifier balancedSwapSHMforLink() {
-        require(poolSHMBalance()*(poolLinkBalance()-linkToReceiveSHMReceived()) == constantProduct, "SHM deposit will not balance pool!"); //msg.value updates balance before payable modifier
+    modifier balancedSwapSHMforToken() {
+        require(poolSHMBalance()*(poolTokenBalance()-TokenToReceiveSHMReceived()) == constantProduct, "SHM deposit will not balance pool!"); //msg.value updates balance before payable modifier
         _;
     }
 
-    modifier balancedSwapLinkforSHM(uint payLink) {
-        require((poolLinkBalance()+payLink)*(poolSHMBalance()-SHMToReceive(payLink)) == constantProduct, "Link deposit will not balance pool!.");
+    modifier balancedSwapTokenforSHM(uint payToken) {
+        require((poolTokenBalance()+payToken)*(poolSHMBalance()-SHMToReceive(payToken)) == constantProduct, "Token deposit will not balance pool!.");
         _;
     }
 
-    function createSHMLinkPool(uint linkDeposit) public payable senderIsOwner poolEmpty validDeposit(linkDeposit) {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
-        tokenObject.transferFrom(Owner, address(this), linkDeposit);
+    function createSHMTokenPool(uint TokenDeposit) public payable senderIsOwner poolEmpty validDeposit(TokenDeposit) {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND Token FROM THE ERC20 CONTRACT!
+        tokenObject.transferFrom(Owner, address(this), TokenDeposit);
     }
 
     function ownerWithdrawPool() public senderIsOwner poolExists  {
-        tokenObject.transfer(Owner, poolLinkBalance());
+        tokenObject.transfer(Owner, poolTokenBalance());
         payable(Owner).transfer(address(this).balance);
     }
 
-    function swapSHMforLINK() public payable poolExists balancedSwapSHMforLink {
-        tokenObject.transfer(msg.sender, linkToReceiveSHMReceived() );
+    function swapSHMforToken() public payable poolExists balancedSwapSHMforToken {
+        tokenObject.transfer(msg.sender, TokenToReceiveSHMReceived() );
     }
 
-    function swapLINKforSHM(uint payLink) public poolExists balancedSwapLinkforSHM(payLink) {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND LINK FROM THE ERC20 CONTRACT!
-        tokenObject.transferFrom(msg.sender, address(this),  payLink );
-        payable(msg.sender).transfer(SHMToReceiveLinkReceived());
+    function swapTokenforSHM(uint payToken) public poolExists balancedSwapTokenforSHM(payToken) {     //NEED TO APPROVE EVERY TIME BEFORE YOU SEND Token FROM THE ERC20 CONTRACT!
+        tokenObject.transferFrom(msg.sender, address(this),  payToken );
+        payable(msg.sender).transfer(SHMToReceiveTokenReceived());
     }
 
     function poolSHMBalance() public view returns(uint)  {
         return address(this).balance;
     }
 
-    function poolLinkBalance() public view returns(uint)  {
+    function poolTokenBalance() public view returns(uint)  {
         return tokenObject.balanceOf(address(this));
     }
 
-    function SHMToReceive(uint payLink) public view returns(uint)  {
-        return poolSHMBalance()-(constantProduct)/(poolLinkBalance()+payLink);
+    function SHMToReceive(uint payToken) public view returns(uint)  {
+        return poolSHMBalance()-(constantProduct)/(poolTokenBalance()+payToken);
     }
 
-    function SHMToReceiveLinkReceived() public view returns(uint)  {
-        return poolSHMBalance()-(constantProduct/((poolLinkBalance())) ) ;
+    function SHMToReceiveTokenReceived() public view returns(uint)  {
+        return poolSHMBalance()-(constantProduct/((poolTokenBalance())) ) ;
     }
 
-    function linkToReceive(uint paySHM) public view returns(uint)  {
-        return poolLinkBalance()-(constantProduct)/(poolSHMBalance()+paySHM);
+    function TokenToReceive(uint paySHM) public view returns(uint)  {
+        return poolTokenBalance()-(constantProduct)/(poolSHMBalance()+paySHM);
     }
 
-    function linkToReceiveSHMReceived() public view returns(uint)  {
-        return poolLinkBalance()-(constantProduct/((poolSHMBalance())) ) ;
+    function TokenToReceiveSHMReceived() public view returns(uint)  {
+        return poolTokenBalance()-(constantProduct/((poolSHMBalance())) ) ;
     }
 
 }
